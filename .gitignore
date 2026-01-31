@@ -1,0 +1,50 @@
+# Unity generated
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# Memory Captures
+/[Mm]emoryCaptures/
+
+# Recordings
+/[Rr]ecordings/
+
+# Asset meta data should be tracked with .meta files
+# But ignore OS/IDE files
+.DS_Store
+.idea/
+.vs/
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+
+# Packages - only track manifest, not the cache
+/Packages/packages-lock.json
+
+# Ignore purchased/imported asset packs (large binaries)
+/Assets/_Creepy_Cat/
+/Assets/_DLNK/
+/Assets/Elite_Soldiers/
+/Assets/Protofactor/
+/Assets/Exo-planets - NovaShade/
+
+# Ignore auto-generated/Unity default folders
+/Assets/TextMesh Pro/
+/Assets/TutorialInfo/
+/Assets/UI Toolkit/
+
+# Crashlytics
+crashlytics-build.properties
+
+# Addressables
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+/[Aa]ssets/[Ss]treamingAssets/aa.meta
+/[Aa]ssets/[Ss]treamingAssets/aa/*
