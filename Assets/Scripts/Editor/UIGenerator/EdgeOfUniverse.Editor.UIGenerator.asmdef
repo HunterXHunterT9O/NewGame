@@ -1,0 +1,16 @@
+{
+    "name": "EdgeOfUniverse.Editor.UIGenerator",
+    "rootNamespace": "EdgeOfUniverse.Editor.UIGenerator",
+    "references": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
