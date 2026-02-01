@@ -18,6 +18,8 @@
 .DS_Store
 .idea/
 .vs/
+.vsconfig
+.claude/
 *.csproj
 *.sln
 *.suo
