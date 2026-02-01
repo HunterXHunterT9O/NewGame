@@ -43,6 +43,22 @@
 /Assets/TutorialInfo/
 /Assets/UI Toolkit/
 
+# NuGet for Unity
+/Assets/Packages/
+/Assets/Packages.meta
+/Assets/NuGet.config
+/Assets/NuGet.config.meta
+/ProjectSettings/Packages/com.github-glitchenzo.nugetforunity/
+
+# Generated assets (can be rebuilt via Tools menu)
+/Assets/UI/Generated/
+/Assets/UI/Prefabs/
+/Assets/UI/Prefabs.meta
+/Assets/VFX/
+/Assets/VFX.meta
+/Assets/NavMesh-*.asset
+/Assets/NavMesh-*.asset.meta
+
 # Crashlytics
 crashlytics-build.properties
 

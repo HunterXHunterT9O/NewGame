@@ -1,6 +1,8 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
+using EdgeOfUniverse.VFX;
 
 /// <summary>
 /// Handles unit selection via click, shift-click, and box selection.
@@ -56,14 +58,22 @@ public class UnitSelectionSystem : MonoBehaviour
         if (cameraController != null)
         {
             cam = cameraController.Camera;
+            Debug.Log($"[Selection] Found RTSCameraController, camera: {(cam != null ? cam.name : "NULL")}");
         }
         else
         {
             cam = Camera.main;
+            Debug.Log($"[Selection] Using Camera.main: {(cam != null ? cam.name : "NULL")}");
+        }
+
+        if (cam == null)
+        {
+            Debug.LogError("[Selection] No camera found! Selection will not work.");
         }
 
         // Find all existing selectable units
         RefreshUnitList();
+        Debug.Log($"[Selection] Found {allUnits.Count} selectable units");
     }
 
     private void Update()
@@ -98,18 +108,21 @@ public class UnitSelectionSystem : MonoBehaviour
 
     private void HandleLeftClick()
     {
+        var mouse = Mouse.current;
+        if (mouse == null) return;
+
         // Start selection on mouse down
-        if (Input.GetMouseButtonDown(0))
+        if (mouse.leftButton.wasPressedThisFrame)
         {
-            boxStartPos = Input.mousePosition;
+            boxStartPos = mouse.position.ReadValue();
             boxEndPos = boxStartPos;
             isBoxSelecting = false;
         }
 
         // Update box while held
-        if (Input.GetMouseButton(0))
+        if (mouse.leftButton.isPressed)
         {
-            boxEndPos = Input.mousePosition;
+            boxEndPos = mouse.position.ReadValue();
 
             // Check if we've dragged far enough to start box selection
             if (!isBoxSelecting && Vector2.Distance(boxStartPos, boxEndPos) > clickThreshold)
@@ -119,7 +132,7 @@ public class UnitSelectionSystem : MonoBehaviour
         }
 
         // Complete selection on mouse up
-        if (Input.GetMouseButtonUp(0))
+        if (mouse.leftButton.wasReleasedThisFrame)
         {
             if (isBoxSelecting)
             {
@@ -136,13 +149,27 @@ public class UnitSelectionSystem : MonoBehaviour
 
     private void HandleRightClick()
     {
-        if (Input.GetMouseButtonDown(1) && HasSelection)
+        var mouse = Mouse.current;
+        if (mouse == null) return;
+
+        if (mouse.rightButton.wasPressedThisFrame && HasSelection)
         {
             // Raycast to ground for move command
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+            Ray ray = cam.ScreenPointToRay(mouse.position.ReadValue());
             if (Physics.Raycast(ray, out RaycastHit hit, 200f, groundLayer))
             {
+                Debug.Log($"[Selection] Move command to {hit.point} for {selectedUnits.Count} units");
                 IssueFormationMove(hit.point);
+
+                // Spawn move command VFX
+                if (VFXManager.Instance != null)
+                {
+                    VFXManager.Instance.SpawnMoveCommand(hit.point + Vector3.up * 0.1f);
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[Selection] Right-click raycast didn't hit ground. Check groundLayer mask.");
             }
         }
     }
@@ -151,10 +178,19 @@ public class UnitSelectionSystem : MonoBehaviour
     {
         int unitCount = selectedUnits.Count;
 
+        if (unitCount == 0) return;
+
+        // Fire event for any listeners
+        OnMoveCommand?.Invoke(destination);
+
         if (unitCount == 1)
         {
-            // Single unit - just move directly
-            OnMoveCommand?.Invoke(destination);
+            // Single unit - move directly
+            var movement = selectedUnits[0].GetComponent<UnitMovement>();
+            if (movement != null)
+            {
+                movement.MoveTo(destination);
+            }
             return;
         }
 
@@ -183,15 +219,18 @@ public class UnitSelectionSystem : MonoBehaviour
 
     private void HandleHotkeys()
     {
+        var keyboard = Keyboard.current;
+        if (keyboard == null) return;
+
         // Space - focus on selection
-        if (Input.GetKeyDown(KeyCode.Space) && HasSelection)
+        if (keyboard.spaceKey.wasPressedThisFrame && HasSelection)
         {
             FocusOnSelection();
         }
 
         // Ctrl+A - select all
-        if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
-            && Input.GetKeyDown(KeyCode.A))
+        if ((keyboard.leftCtrlKey.isPressed || keyboard.rightCtrlKey.isPressed)
+            && keyboard.aKey.wasPressedThisFrame)
         {
             SelectAll();
         }
@@ -199,15 +238,40 @@ public class UnitSelectionSystem : MonoBehaviour
 
     private void CompleteClickSelection()
     {
-        bool addToSelection = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        if (cam == null)
+        {
+            Debug.LogError("[Selection] Camera is null!");
+            return;
+        }
 
-        // Raycast for unit
+        var keyboard = Keyboard.current;
+        bool addToSelection = keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
+
+        // Raycast for unit - use RaycastAll to find units even behind ground
         Ray ray = cam.ScreenPointToRay(boxStartPos);
         SelectableUnit clickedUnit = null;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, 200f, unitLayer))
+        RaycastHit[] hits = Physics.RaycastAll(ray, 200f, unitLayer);
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (var hit in hits)
         {
-            clickedUnit = hit.collider.GetComponentInParent<SelectableUnit>();
+            SelectableUnit unit = hit.collider.GetComponentInParent<SelectableUnit>();
+            if (unit != null)
+            {
+                Debug.Log($"[Selection] Found unit: {unit.gameObject.name}");
+                clickedUnit = unit;
+                break;
+            }
+        }
+
+        if (clickedUnit == null && hits.Length > 0)
+        {
+            Debug.Log($"[Selection] Raycast hit {hits.Length} objects but no units");
+        }
+        else if (hits.Length == 0)
+        {
+            Debug.Log("[Selection] Raycast hit nothing");
         }
 
         if (clickedUnit != null)
@@ -240,7 +304,8 @@ public class UnitSelectionSystem : MonoBehaviour
 
     private void CompleteBoxSelection()
     {
-        bool addToSelection = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        var keyboard = Keyboard.current;
+        bool addToSelection = keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
 
         if (!addToSelection)
         {
@@ -317,6 +382,12 @@ public class UnitSelectionSystem : MonoBehaviour
         unit.SetSelected(true);
         selectedUnits.Add(unit);
         OnSelectionChanged?.Invoke(selectedUnits);
+
+        // Spawn selection VFX
+        if (VFXManager.Instance != null)
+        {
+            VFXManager.Instance.SpawnSelectionBurst(unit.Position);
+        }
     }
 
     /// <summary>

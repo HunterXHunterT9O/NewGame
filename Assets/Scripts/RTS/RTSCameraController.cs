@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System;
 
 /// <summary>
@@ -105,19 +106,24 @@ public class RTSCameraController : MonoBehaviour
         Vector3 moveDir = Vector3.zero;
 
         // WASD input
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
-            moveDir += GetForward();
-        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
-            moveDir -= GetForward();
-        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
-            moveDir += GetRight();
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
-            moveDir -= GetRight();
+        var keyboard = Keyboard.current;
+        if (keyboard != null)
+        {
+            if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed)
+                moveDir += GetForward();
+            if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed)
+                moveDir -= GetForward();
+            if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
+                moveDir += GetRight();
+            if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
+                moveDir -= GetRight();
+        }
 
         // Edge pan
-        if (enableEdgePan && !isRotating)
+        var mouse = Mouse.current;
+        if (enableEdgePan && !isRotating && mouse != null)
         {
-            Vector3 mousePos = Input.mousePosition;
+            Vector2 mousePos = mouse.position.ReadValue();
 
             if (mousePos.x < edgePanThreshold)
                 moveDir -= GetRight();
@@ -142,7 +148,8 @@ public class RTSCameraController : MonoBehaviour
 
     private void HandleZoom()
     {
-        float scroll = Input.mouseScrollDelta.y;
+        var mouse = Mouse.current;
+        float scroll = mouse != null ? mouse.scroll.ReadValue().y / 120f : 0f;
 
         if (Mathf.Abs(scroll) > 0.01f)
         {
@@ -163,20 +170,23 @@ public class RTSCameraController : MonoBehaviour
 
     private void HandleRotation()
     {
+        var mouse = Mouse.current;
+        if (mouse == null) return;
+
         // Middle mouse to rotate
-        if (Input.GetMouseButtonDown(2))
+        if (mouse.middleButton.wasPressedThisFrame)
         {
             isRotating = true;
         }
 
-        if (Input.GetMouseButtonUp(2))
+        if (mouse.middleButton.wasReleasedThisFrame)
         {
             isRotating = false;
         }
 
         if (isRotating)
         {
-            float rotateInput = Input.GetAxis("Mouse X");
+            float rotateInput = mouse.delta.ReadValue().x * 0.1f;
             transform.Rotate(Vector3.up, rotateInput * rotationSpeed * Time.deltaTime, Space.World);
         }
     }

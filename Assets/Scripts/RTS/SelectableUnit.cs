@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using EdgeOfUniverse.VFX;
 
 /// <summary>
 /// Component that marks a unit as selectable and handles selection visuals.
@@ -9,13 +10,23 @@ using System;
 public class SelectableUnit : MonoBehaviour
 {
     [Header("Selection Visuals")]
+    [SerializeField] private bool useAdvancedIndicator = true;
     [SerializeField] private GameObject selectionIndicator;
-    [SerializeField] private Color selectionColor = new Color(0.2f, 0.8f, 0.2f, 1f);
+    [SerializeField] private Color selectionColor = new Color(0.31f, 0.71f, 0.78f, 1f); // Cyan to match new system
     [SerializeField] private float indicatorScale = 1.5f;
+
+    // Advanced indicator reference
+    private SelectionIndicator advancedIndicator;
 
     [Header("Unit Info")]
     [SerializeField] private string unitName = "Unit";
     [SerializeField] private Sprite unitIcon;
+    [SerializeField] private Sprite portrait;
+    [SerializeField] private Sprite classIcon;
+
+    [Header("Health")]
+    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private float currentHealth = 100f;
 
     private bool isSelected;
     private Renderer[] renderers;
@@ -24,12 +35,19 @@ public class SelectableUnit : MonoBehaviour
     // Events
     public event Action<SelectableUnit> OnSelected;
     public event Action<SelectableUnit> OnDeselected;
+    public event Action<SelectableUnit, float> OnHealthChanged;
+    public event Action<SelectableUnit> OnDeath;
 
     // Public accessors
     public bool IsSelected => isSelected;
     public string UnitName => unitName;
     public Sprite UnitIcon => unitIcon;
+    public Sprite Portrait => portrait;
+    public Sprite ClassIcon => classIcon;
     public Vector3 Position => transform.position;
+    public float MaxHealth => maxHealth;
+    public float CurrentHealth => currentHealth;
+    public float HealthRatio => maxHealth > 0 ? currentHealth / maxHealth : 0f;
 
     private void Awake()
     {
@@ -64,30 +82,45 @@ public class SelectableUnit : MonoBehaviour
     {
         if (selectionIndicator != null) return;
 
-        // Create a simple ring/circle indicator below the unit
-        selectionIndicator = new GameObject("SelectionIndicator");
-        selectionIndicator.transform.SetParent(transform);
-        selectionIndicator.transform.localPosition = new Vector3(0f, 0.05f, 0f);
-        selectionIndicator.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-
         // Calculate scale based on unit bounds
         Bounds bounds = GetUnitBounds();
         float diameter = Mathf.Max(bounds.size.x, bounds.size.z) * indicatorScale;
 
-        // Create mesh for ring
-        MeshFilter meshFilter = selectionIndicator.AddComponent<MeshFilter>();
-        MeshRenderer meshRenderer = selectionIndicator.AddComponent<MeshRenderer>();
+        if (useAdvancedIndicator)
+        {
+            // Create advanced multi-layer tactical indicator
+            selectionIndicator = new GameObject("SelectionIndicator");
+            selectionIndicator.transform.SetParent(transform);
+            selectionIndicator.transform.localPosition = new Vector3(0f, 0.05f, 0f);
 
-        meshFilter.mesh = CreateRingMesh(diameter * 0.5f, diameter * 0.4f, 32);
+            advancedIndicator = selectionIndicator.AddComponent<SelectionIndicator>();
+            advancedIndicator.SetScale(diameter * 0.5f);
 
-        // Create unlit material
-        Material mat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
-        mat.color = selectionColor;
-        meshRenderer.material = mat;
-        meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        meshRenderer.receiveShadows = false;
+            selectionIndicator.SetActive(true); // Container active, indicator controls visibility
+        }
+        else
+        {
+            // Fallback: Create simple ring/circle indicator below the unit
+            selectionIndicator = new GameObject("SelectionIndicator");
+            selectionIndicator.transform.SetParent(transform);
+            selectionIndicator.transform.localPosition = new Vector3(0f, 0.05f, 0f);
+            selectionIndicator.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
 
-        selectionIndicator.SetActive(false);
+            // Create mesh for ring
+            MeshFilter meshFilter = selectionIndicator.AddComponent<MeshFilter>();
+            MeshRenderer meshRenderer = selectionIndicator.AddComponent<MeshRenderer>();
+
+            meshFilter.mesh = CreateRingMesh(diameter * 0.5f, diameter * 0.4f, 32);
+
+            // Create unlit material
+            Material mat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+            mat.color = selectionColor;
+            meshRenderer.material = mat;
+            meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            meshRenderer.receiveShadows = false;
+
+            selectionIndicator.SetActive(false);
+        }
     }
 
     private Mesh CreateRingMesh(float outerRadius, float innerRadius, int segments)
@@ -161,7 +194,14 @@ public class SelectableUnit : MonoBehaviour
         isSelected = selected;
 
         // Show/hide indicator
-        if (selectionIndicator != null)
+        if (useAdvancedIndicator && advancedIndicator != null)
+        {
+            if (selected)
+                advancedIndicator.Show();
+            else
+                advancedIndicator.Hide();
+        }
+        else if (selectionIndicator != null)
         {
             selectionIndicator.SetActive(selected);
         }
@@ -175,6 +215,43 @@ public class SelectableUnit : MonoBehaviour
         {
             OnDeselected?.Invoke(this);
         }
+    }
+
+    /// <summary>
+    /// Apply damage to this unit
+    /// </summary>
+    public void TakeDamage(float amount)
+    {
+        if (currentHealth <= 0) return;
+
+        currentHealth = Mathf.Max(0, currentHealth - amount);
+        OnHealthChanged?.Invoke(this, currentHealth);
+
+        if (currentHealth <= 0)
+        {
+            OnDeath?.Invoke(this);
+        }
+    }
+
+    /// <summary>
+    /// Heal this unit
+    /// </summary>
+    public void Heal(float amount)
+    {
+        if (currentHealth <= 0) return;
+
+        currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
+        OnHealthChanged?.Invoke(this, currentHealth);
+    }
+
+    /// <summary>
+    /// Set health directly (for initialization)
+    /// </summary>
+    public void SetHealth(float health, float max = -1)
+    {
+        if (max > 0) maxHealth = max;
+        currentHealth = Mathf.Clamp(health, 0, maxHealth);
+        OnHealthChanged?.Invoke(this, currentHealth);
     }
 
     /// <summary>

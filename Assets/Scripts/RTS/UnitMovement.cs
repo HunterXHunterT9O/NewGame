@@ -55,12 +55,8 @@ public class UnitMovement : MonoBehaviour
         agent.stoppingDistance = stoppingDistance;
         agent.autoBraking = true;
 
-        // Subscribe to selection system events
-        var selectionSystem = FindAnyObjectByType<UnitSelectionSystem>();
-        if (selectionSystem != null)
-        {
-            selectionSystem.OnMoveCommand += HandleMoveCommand;
-        }
+        // Note: Movement is handled directly by UnitSelectionSystem.IssueFormationMove()
+        // The OnMoveCommand event is for external listeners (VFX, audio, etc.)
     }
 
     private void Update()
@@ -101,14 +97,6 @@ public class UnitMovement : MonoBehaviour
                 // Parameters don't exist, ignore
             }
         }
-    }
-
-    private void HandleMoveCommand(Vector3 destination)
-    {
-        // Only respond if this unit is selected
-        if (!selectableUnit.IsSelected) return;
-
-        MoveTo(destination);
     }
 
     /// <summary>
@@ -175,16 +163,6 @@ public class UnitMovement : MonoBehaviour
     {
         NavMeshPath path = new NavMeshPath();
         return agent.CalculatePath(destination, path) && path.status == NavMeshPathStatus.PathComplete;
-    }
-
-    private void OnDestroy()
-    {
-        // Unsubscribe from selection system
-        var selectionSystem = FindAnyObjectByType<UnitSelectionSystem>();
-        if (selectionSystem != null)
-        {
-            selectionSystem.OnMoveCommand -= HandleMoveCommand;
-        }
     }
 
     private void OnDrawGizmosSelected()

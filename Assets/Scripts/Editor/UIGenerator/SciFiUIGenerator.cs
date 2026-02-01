@@ -365,7 +365,7 @@ namespace EdgeOfUniverse.Editor.UIGenerator
 
             tex.Apply();
             SaveTexture(tex, $"Buttons/{name}.png");
-            Object.DestroyImmediate(tex);
+            UnityEngine.Object.DestroyImmediate(tex);
         }
 
         #endregion
@@ -551,7 +551,7 @@ namespace EdgeOfUniverse.Editor.UIGenerator
             tex.SetPixels32(pixels);
             tex.Apply();
             SaveTexture(tex, $"Panels/{name}.png");
-            Object.DestroyImmediate(tex);
+            UnityEngine.Object.DestroyImmediate(tex);
         }
 
         #endregion
@@ -712,7 +712,7 @@ namespace EdgeOfUniverse.Editor.UIGenerator
 
             tex.Apply();
             SaveTexture(tex, $"ThreatMeter/Threat_{state}.png");
-            Object.DestroyImmediate(tex);
+            UnityEngine.Object.DestroyImmediate(tex);
         }
 
         private void GenerateThreatMeterFrameFallback(int width, int height)
@@ -736,7 +736,7 @@ namespace EdgeOfUniverse.Editor.UIGenerator
 
             tex.Apply();
             SaveTexture(tex, "ThreatMeter/Threat_Frame.png");
-            Object.DestroyImmediate(tex);
+            UnityEngine.Object.DestroyImmediate(tex);
         }
 
         #endregion
@@ -856,7 +856,7 @@ namespace EdgeOfUniverse.Editor.UIGenerator
 
             tex.Apply();
             SaveTexture(tex, $"ProgressBars/{name}.png");
-            Object.DestroyImmediate(tex);
+            UnityEngine.Object.DestroyImmediate(tex);
         }
 
         private void GenerateProgressBarFrameFallback(string name, int width, int height)
@@ -880,7 +880,7 @@ namespace EdgeOfUniverse.Editor.UIGenerator
 
             tex.Apply();
             SaveTexture(tex, $"ProgressBars/{name}.png");
-            Object.DestroyImmediate(tex);
+            UnityEngine.Object.DestroyImmediate(tex);
         }
 
         #endregion
@@ -1111,7 +1111,7 @@ namespace EdgeOfUniverse.Editor.UIGenerator
 
             tex.Apply();
             SaveTexture(tex, $"Icons/{name}.png");
-            Object.DestroyImmediate(tex);
+            UnityEngine.Object.DestroyImmediate(tex);
         }
 
         #endregion
@@ -1330,7 +1330,7 @@ namespace EdgeOfUniverse.Editor.UIGenerator
 
             tex.Apply();
             SaveTexture(tex, "Compass/Compass_Body.png");
-            Object.DestroyImmediate(tex);
+            UnityEngine.Object.DestroyImmediate(tex);
         }
 
         #endregion
@@ -1466,7 +1466,7 @@ namespace EdgeOfUniverse.Editor.UIGenerator
 
             tex.Apply();
             SaveTexture(tex, $"SquadFrames/{name}.png");
-            Object.DestroyImmediate(tex);
+            UnityEngine.Object.DestroyImmediate(tex);
         }
 
         #endregion
@@ -1581,7 +1581,7 @@ namespace EdgeOfUniverse.Editor.UIGenerator
 
             tex.Apply();
             SaveTexture(tex, $"Warnings/{name}.png");
-            Object.DestroyImmediate(tex);
+            UnityEngine.Object.DestroyImmediate(tex);
         }
 
         #endregion

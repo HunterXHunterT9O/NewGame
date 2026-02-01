@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using Unity.AI.Navigation;
 
 /// <summary>
 /// Creates a test scene for RTS camera and unit selection.
@@ -94,25 +95,21 @@ public class RTSSceneSetup : MonoBehaviour
 
     private void SetupNavMesh()
     {
-        // Add NavMeshSurface if AI Navigation package is available
         var ground = GameObject.Find("Ground");
         if (ground == null) return;
 
-        // Check if NavMeshSurface component type exists
-        var navSurfaceType = System.Type.GetType("Unity.AI.Navigation.NavMeshSurface, Unity.AI.Navigation");
-        if (navSurfaceType != null)
+        // Add NavMeshSurface component
+        NavMeshSurface surface = ground.GetComponent<NavMeshSurface>();
+        if (surface == null)
         {
-            var existingSurface = ground.GetComponent(navSurfaceType);
-            if (existingSurface == null)
-            {
-                ground.AddComponent(navSurfaceType);
-                Debug.Log("[RTSSceneSetup] NavMeshSurface added. Bake it via Window > AI > Navigation.");
-            }
+            surface = ground.AddComponent<NavMeshSurface>();
+            surface.collectObjects = CollectObjects.All;
+            surface.useGeometry = NavMeshCollectGeometry.RenderMeshes;
         }
-        else
-        {
-            Debug.LogWarning("[RTSSceneSetup] AI Navigation package not found. Please install it via Package Manager and bake NavMesh manually.");
-        }
+
+        // Bake the NavMesh
+        surface.BuildNavMesh();
+        Debug.Log("[RTSSceneSetup] NavMesh baked successfully!");
     }
 
     private void SetupCamera()
