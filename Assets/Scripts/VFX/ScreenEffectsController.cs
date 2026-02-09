@@ -157,7 +157,7 @@ namespace EdgeOfUniverse.VFX
             }
             filmGrain.active = true;
             filmGrain.intensity.Override(0.05f); // Subtle base grain
-            filmGrain.type.Override(FilmGrainLookup.Medium);
+            filmGrain.type.Override(FilmGrainLookup.Medium1);
             baseFilmGrain = 0.05f;
 
             // Color Adjustments

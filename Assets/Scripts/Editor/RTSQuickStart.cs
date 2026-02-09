@@ -8,6 +8,7 @@ using Unity.AI.Navigation;
 using TMPro;
 using EdgeOfUniverse.UI;
 using EdgeOfUniverse.VFX;
+using EdgeOfUniverse.RTS;
 
 namespace EdgeOfUniverse.Editor
 {
@@ -27,6 +28,28 @@ namespace EdgeOfUniverse.Editor
         public static void ShowWindow()
         {
             GetWindow<RTSQuickStart>("RTS Quick Start");
+        }
+
+        [MenuItem("Tools/Edge of Universe/Recreate Units")]
+        public static void RecreateUnits()
+        {
+            // Delete existing units
+            GameObject unitsContainer = GameObject.Find("Units");
+            if (unitsContainer != null)
+            {
+                foreach (var unit in FindObjectsByType<SelectableUnit>(FindObjectsSortMode.None))
+                {
+                    DestroyImmediate(unit.gameObject);
+                }
+                DestroyImmediate(unitsContainer);
+                Debug.Log("[RTS Quick Start] Deleted existing units");
+            }
+
+            // Create new instance to access instance methods
+            RTSQuickStart window = CreateInstance<RTSQuickStart>();
+            window.SpawnUnits();
+
+            Debug.Log("[RTS Quick Start] Units recreated with updated settings!");
         }
 
         private void OnGUI()
@@ -315,18 +338,72 @@ namespace EdgeOfUniverse.Editor
 
         private void CreateUnit(Transform parent, Vector3 position, int index)
         {
-            GameObject unit = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            unit.name = $"Unit_{index}";
-            unit.transform.SetParent(parent);
-            unit.transform.position = position + Vector3.up * 1f;
+            // Load Elite Soldier prefab
+            string[] soldierPrefabs = new string[]
+            {
+                "Assets/Elite_Soldiers/Prefab/Soldier_01.prefab",
+                "Assets/Elite_Soldiers/Prefab/Soldier_02.prefab",
+                "Assets/Elite_Soldiers/Prefab/Soldier_03.prefab",
+                "Assets/Elite_Soldiers/Prefab/Soldier_04.prefab"
+            };
 
-            // Material
-            var renderer = unit.GetComponent<Renderer>();
-            Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            mat.color = new Color(0.2f, 0.4f, 0.7f);
-            renderer.material = mat;
+            // Pick a soldier variant
+            int variantIndex = index % soldierPrefabs.Length;
+            GameObject soldierPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(soldierPrefabs[variantIndex]);
 
-            // Components
+            GameObject unit;
+            if (soldierPrefab != null)
+            {
+                // Instantiate the soldier model
+                unit = (GameObject)PrefabUtility.InstantiatePrefab(soldierPrefab);
+                unit.name = $"Unit_{index}";
+                unit.transform.SetParent(parent);
+                unit.transform.position = position;
+                unit.transform.rotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
+
+                // Remove all child colliders (they interfere with selection)
+                foreach (var col in unit.GetComponentsInChildren<Collider>())
+                {
+                    DestroyImmediate(col);
+                }
+
+                // Add a single capsule collider at the root for selection and physics
+                CapsuleCollider unitCollider = unit.AddComponent<CapsuleCollider>();
+                unitCollider.center = new Vector3(0, 1f, 0);
+                unitCollider.radius = 0.5f;
+                unitCollider.height = 2f;
+
+                // Check if animator has controller
+                Animator anim = unit.GetComponent<Animator>();
+                if (anim != null)
+                {
+                    if (anim.runtimeAnimatorController == null)
+                    {
+                        anim.enabled = false;
+                        Debug.LogWarning($"[RTS Quick Start] {unit.name} has no animation controller. Run: Tools > Setup Soldier Animations");
+                    }
+                    else
+                    {
+                        Debug.Log($"[RTS Quick Start] {unit.name} has animation controller: {anim.runtimeAnimatorController.name}");
+                    }
+                }
+            }
+            else
+            {
+                // Fallback to capsule if prefab not found
+                Debug.LogWarning($"[RTS Quick Start] Elite Soldier prefabs not found. Using capsule fallback.");
+                unit = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                unit.name = $"Unit_{index}";
+                unit.transform.SetParent(parent);
+                unit.transform.position = position + Vector3.up * 1f;
+
+                var renderer = unit.GetComponent<Renderer>();
+                Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                mat.color = new Color(0.2f, 0.4f, 0.7f);
+                renderer.material = mat;
+            }
+
+            // Add RTS components
             var selectable = unit.AddComponent<SelectableUnit>();
 
             NavMeshAgent agent = unit.AddComponent<NavMeshAgent>();
@@ -337,6 +414,12 @@ namespace EdgeOfUniverse.Editor
             agent.stoppingDistance = 0.5f;
 
             unit.AddComponent<UnitMovement>();
+
+            // Add animation controller if soldier has an Animator
+            if (soldierPrefab != null && unit.GetComponent<Animator>() != null)
+            {
+                unit.AddComponent<SoldierAnimator>();
+            }
         }
 
         private void CreateHUD()

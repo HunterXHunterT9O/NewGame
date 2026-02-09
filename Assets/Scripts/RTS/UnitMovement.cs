@@ -80,7 +80,7 @@ public class UnitMovement : MonoBehaviour
 
     private void UpdateAnimation()
     {
-        if (animator == null) return;
+        if (animator == null || animator.runtimeAnimatorController == null) return;
 
         float speed = agent.velocity.magnitude / moveSpeed;
 

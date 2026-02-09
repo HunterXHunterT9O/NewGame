@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f49fac0878aa4578998a1273e9f7cec, type: 3}
+  m_Name: Xagobah_Deep
+  m_EditorClassIdentifier: Assembly-CSharp::EdgeOfUniverse.RTS.PlanetData
+  planetName: Xagobah Deep
+  description: Dense swamp world with volatile fuel pockets.
+  missionBriefing: Tap into subterranean fuel reserves. Toxic atmosphere and aggressive
+    predators.
+  dangerLevel: 4
+  missionStatus: 1
+  resources:
+  - type: 1
+    amount: 80
+  - type: 2
+    amount: 50
+  - type: 0
+    amount: 25
+  - type: 3
+    amount: 15
+  primaryTexture: Xagobah
+  secondaryTexture: Xagobah_water.tga
+  cloudDensity: 2
+  ringType: 0
+  atmosphereColor: {r: 0.3, g: 0.5, b: 0.2, a: 0.18}
+  planetScale: 2.4
+  mapPosition: {x: 0, y: 0, z: 0}

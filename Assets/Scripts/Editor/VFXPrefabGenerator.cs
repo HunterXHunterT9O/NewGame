@@ -102,6 +102,11 @@ namespace EdgeOfUniverse.Editor
         {
             GameObject root = new GameObject("VFX_MoveCommand");
 
+            // Cyan color matching selection indicator (#50B4C8)
+            Color cyanPrimary = new Color(0.31f, 0.71f, 0.78f, 0.8f);
+            Color cyanBright = new Color(0.5f, 0.89f, 0.97f, 0.9f);
+            Color orangeAccent = new Color(1f, 0.65f, 0.3f, 0.7f);
+
             // Ring particle
             GameObject ring = CreateParticleChild(root, "Ring");
             var ringPS = ring.GetComponent<ParticleSystem>();
@@ -109,7 +114,7 @@ namespace EdgeOfUniverse.Editor
             ringMain.startLifetime = 1f;
             ringMain.startSpeed = 0f;
             ringMain.startSize = 2f;
-            ringMain.startColor = new Color(0.3f, 0.9f, 0.4f, 0.8f);
+            ringMain.startColor = cyanPrimary;
             ringMain.maxParticles = 1;
             ringMain.loop = false;
 
@@ -125,14 +130,14 @@ namespace EdgeOfUniverse.Editor
             ringColor.enabled = true;
             Gradient ringGrad = new Gradient();
             ringGrad.SetKeys(
-                new[] { new GradientColorKey(new Color(0.3f, 0.9f, 0.4f), 0f), new GradientColorKey(new Color(0.3f, 0.9f, 0.4f), 1f) },
+                new[] { new GradientColorKey(cyanBright, 0f), new GradientColorKey(orangeAccent, 1f) },
                 new[] { new GradientAlphaKey(0.8f, 0f), new GradientAlphaKey(0f, 1f) }
             );
             ringColor.color = ringGrad;
 
             var ringRenderer = ring.GetComponent<ParticleSystemRenderer>();
             ringRenderer.renderMode = ParticleSystemRenderMode.HorizontalBillboard;
-            ringRenderer.material = CreateParticleMaterial(new Color(0.3f, 0.9f, 0.4f));
+            ringRenderer.material = CreateParticleMaterial(cyanBright);
 
             // Vertical beam
             GameObject beam = CreateParticleChild(root, "Beam");
@@ -141,7 +146,7 @@ namespace EdgeOfUniverse.Editor
             beamMain.startLifetime = 0.5f;
             beamMain.startSpeed = 8f;
             beamMain.startSize = 0.3f;
-            beamMain.startColor = new Color(0.4f, 1f, 0.5f, 0.6f);
+            beamMain.startColor = cyanBright;
             beamMain.maxParticles = 20;
             beamMain.loop = false;
             beamMain.gravityModifier = 0f;
@@ -160,13 +165,13 @@ namespace EdgeOfUniverse.Editor
             beamColor.enabled = true;
             Gradient beamGrad = new Gradient();
             beamGrad.SetKeys(
-                new[] { new GradientColorKey(new Color(0.4f, 1f, 0.5f), 0f), new GradientColorKey(new Color(0.2f, 0.8f, 0.3f), 1f) },
+                new[] { new GradientColorKey(cyanBright, 0f), new GradientColorKey(cyanPrimary, 1f) },
                 new[] { new GradientAlphaKey(0.8f, 0f), new GradientAlphaKey(0f, 1f) }
             );
             beamColor.color = beamGrad;
 
             var beamRenderer = beam.GetComponent<ParticleSystemRenderer>();
-            beamRenderer.material = CreateParticleMaterial(new Color(0.4f, 1f, 0.5f));
+            beamRenderer.material = CreateParticleMaterial(cyanBright);
 
             SavePrefab(root, "VFX_MoveCommand");
         }

@@ -15,8 +15,8 @@ public class RTSCameraController : MonoBehaviour
 
     [Header("Zoom Settings")]
     [SerializeField] private float zoomSpeed = 10f;
-    [SerializeField] private float minZoomHeight = 5f;
-    [SerializeField] private float maxZoomHeight = 50f;
+    [SerializeField] private float minZoomHeight = 0.5f;
+    [SerializeField] private float maxZoomHeight = 100f;
     [SerializeField] private float zoomSmoothTime = 0.1f;
 
     [Header("Rotation Settings")]
@@ -153,7 +153,7 @@ public class RTSCameraController : MonoBehaviour
 
         if (Mathf.Abs(scroll) > 0.01f)
         {
-            targetZoomHeight -= scroll * zoomSpeed;
+            targetZoomHeight -= scroll * zoomSpeed;  // Scroll up = zoom in
             targetZoomHeight = Mathf.Clamp(targetZoomHeight, minZoomHeight, maxZoomHeight);
             OnCameraZoom?.Invoke(targetZoomHeight);
         }
